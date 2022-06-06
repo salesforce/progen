@@ -19,7 +19,7 @@ Official release of the **ProGen** models (`151M`, `764M`, `2.7B`, `6.4B`) for *
 git clone https://github.com/salesforce/progen
 cd progen
 
-# transfer checkpoints
+# transfer checkpoint
 wget -P checkpoints https://storage.googleapis.com/sfr-progen-research/checkpoints/6B-BFD30-Uniref90++.tar.gz && tar -xvf checkpoints/6B-BFD30-Uniref90++.tar.gz -C checkpoints/
 
 # create virtual environment
