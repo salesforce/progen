@@ -1,5 +1,5 @@
 # ProGen
-Official release of the **ProGen** models (`151M`, `764M`, `2.8B`, `6.4B`) for **Protein Synthesis**.
+Official release of the **ProGen** models (`151M`, `764M`, `2.7B`, `6.4B`) for **Protein Synthesis**.
 
 ## Models
 
