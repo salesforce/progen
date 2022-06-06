@@ -1,6 +1,18 @@
 # ProGen
-Official release of the **ProGen** models (`764M`, `2.8B`, `6.4B`) for **Protein Synthesis**.
+Official release of the **ProGen** models (`151M`, `764M`, `2.8B`, `6.4B`) for **Protein Synthesis**.
 
+## Models
+
+| Model  | Checkpoint |
+| ------------- | ------------- |
+| 151M-BFD30-Uniref90	  |  |
+| 754M-BFD30-Uniref90	  |  |
+| 754M-OASu85	          |  |
+| 754M-BFD30-Uniref90++	  |  |
+| 2B-BFD30-Uniref90       |  |
+| 2B-BFD90-Uniref90+      |  |
+| 6B-BFD30-Uniref90	      |  |
+| 6B-BFD30-Uniref90++     |  |
 
 ## Setup
 ```sh
@@ -8,7 +20,7 @@ git clone https://github.com/salesforce/progen
 cd progen
 
 # transfer relevant checkpoints
-wget -P checkpoints https://storage.googleapis.com/sfr-codegen-research/checkpoints/codegen-350M-mono.tar.gz && tar -xvf checkpoints/codegen-350M-mono.tar.gz -C checkpoints/
+wget -P checkpoints https://storage.googleapis.com/sfr-progen-research/checkpoints/6B-BFD30-Uniref90++.tar.gz && tar -xvf checkpoints/6B-BFD30-Uniref90++.tar.gz -C checkpoints/
 
 # create a virtual environment with requirements
 python3.8 -m venv .venv
@@ -17,7 +29,7 @@ pip3 install --upgrade pip setuptools
 pip3 install -r requirements.txt
 
 # sample from the model with an arbitrary context
-python3 -m jaxformer.hf.sample --model codegen-350M-mono --context "def hello_world():"
+python3 sample.py --model 6B-BFD30-Uniref90++ --context "1"
 ```
 
 ## Citation
