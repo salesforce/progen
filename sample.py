@@ -144,9 +144,6 @@ def main():
     set_seed(args.rng_seed, deterministic=args.rng_deterministic)
 
     device = torch.device(args.device)
-    if device.type == 'cpu':
-        args.fp16 = False
-
     ckpt = f'./checkpoints/{args.model}'
 
 
