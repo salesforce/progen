@@ -11,7 +11,7 @@ import argparse
 import torch
 
 from tokenizers import Tokenizer
-from transformers.models.progen.modeling_progen import ProGenForCausalLM
+from models.progen.modeling_progen import ProGenForCausalLM
 
 
 
@@ -65,46 +65,14 @@ def create_tokenizer_custom(file):
 ########################################################################
 # sample
 
-def sample(
-    device,
-    model,
-    tokenizer,
-    context,
-    pad_token_id,
-    num_return_sequences=1,
-    temp=0.2,
-    top_p=0.95,
-    max_length_sample=128,
-    max_length=2048
-):
 
-    input_ids = tokenizer(
-        context,
-        truncation=True,
-        padding=True,
-        max_length=max_length,
-        return_tensors='pt',
-    ).input_ids
-
-    input_ids_len = input_ids.shape[1]
-    assert input_ids_len < max_length
+def sample(device, model, tokenizer, context, max_length, num_return_sequences, top_p, temp, pad_token_id):
 
     with torch.no_grad():
-        input_ids = input_ids.to(device)
-        tokens = model.generate(
-            input_ids,
-            do_sample=True,
-            num_return_sequences=num_return_sequences,
-            temperature=temp,
-            max_length=input_ids_len + max_length_sample,
-            top_p=top_p,
-            pad_token_id=pad_token_id,
-            use_cache=True,
-        )
-        text = tokenizer.batch_decode(tokens[:, input_ids_len:, ...])
-
-    return text
-
+        input_ids = torch.tensor(tokenizer.encode(context).ids).view([1, -1]).to(device)
+        tokens_batch = model.generate(input_ids, do_sample=True, temperature=temp, max_length=max_length, top_p=top_p, num_return_sequences=num_return_sequences, pad_token_id=pad_token_id)
+        as_lists = lambda batch: [batch[i, ...].detach().cpu().numpy().tolist() for i in range(batch.shape[0])]
+        return tokenizer.decode_batch(as_lists(tokens_batch))
 
 
 ########################################################################
@@ -160,7 +128,7 @@ def main():
     # (4) sample
 
     with print_time('sampling'):
-        completion = sample(device=device, model=model, tokenizer=tokenizer, context=args.context, num_return_sequences=args.batch_size, temp=args.t, top_p=args.p, max_length_sample=args.max_length)[0]
+        completion = sample(device=device, model=model, tokenizer=tokenizer, context=args.context, pad_token_id=tokenizer.encode('<|pad|>').ids[0], num_return_sequences=args.batch_size, temp=args.t, top_p=args.p, max_length=args.max_length)[0]
 
         print('=' * 100)
         print(completion)
