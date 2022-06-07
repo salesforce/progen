@@ -163,7 +163,7 @@ def main():
     # (4) sample
 
     with print_time('sampling'):
-        completion = sample(device=device, model=model, tokenizer=tokenizer, context=args.context, pad_token_id=args.pad, num_return_sequences=args.batch_size, temp=args.t, top_p=args.p, max_length_sample=args.max_length)[0]
+        completion = sample(device=device, model=model, tokenizer=tokenizer, context=args.context, num_return_sequences=args.batch_size, temp=args.t, top_p=args.p, max_length_sample=args.max_length)[0]
 
         print('=' * 100)
         print(completion)
