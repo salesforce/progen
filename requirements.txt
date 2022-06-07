@@ -1,3 +1,4 @@
 --find-links https://download.pytorch.org/whl/torch_stable.html
 torch==1.9.0+cu111
 transformers==4.16.2
+tokenizers==0.10.3
