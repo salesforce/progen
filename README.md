@@ -20,7 +20,7 @@ git clone https://github.com/salesforce/progen
 cd progen
 
 # transfer checkpoint
-wget -P checkpoints/6B-BFD30-Uniref90++ https://storage.googleapis.com/sfr-progen-research/checkpoints/6B-BFD30-Uniref90++.tar.gz && tar -xvf checkpoints/6B-BFD30-Uniref90++.tar.gz -C checkpoints/6B-BFD30-Uniref90++/
+wget -P checkpoints/6B-BFD30-Uniref90++ https://storage.googleapis.com/sfr-progen-research/checkpoints/6B-BFD30-Uniref90++.tar.gz && tar -xvf checkpoints/6B-BFD30-Uniref90++/6B-BFD30-Uniref90++.tar.gz -C checkpoints/6B-BFD30-Uniref90++/
 
 # create virtual environment
 python3.8 -m venv .venv
