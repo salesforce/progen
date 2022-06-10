@@ -145,15 +145,12 @@ def main():
 
         print(args.context)
 
-        for i, (completion, truncation) in enumerate(zip(completions, truncations)):
+        for i in range(args.num_samples):
 
-            print('=' * 100)
+            print()
             print(i)
-            print('=' * 100)
-            print(completion)
-            print('=' * 100)
-            print(truncation)
-            print('=' * 100)
+            print(truncations[0])
+            
 
 
 if __name__ == '__main__':
