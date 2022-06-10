@@ -112,7 +112,7 @@ def main():
     parser.add_argument('--p', type=float, default=0.95)
     parser.add_argument('--t', type=float, default=0.2)
     parser.add_argument('--max-length', type=int, default=256)
-    parser.add_argument('--batch-size', type=int, default=1)
+    parser.add_argument('--num-samples', type=int, default=1)
     parser.add_argument('--fp16', default=True, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--context', type=str, default='1')
     args = parser.parse_args()
@@ -140,16 +140,20 @@ def main():
     # (4) sample
 
     with print_time('sampling'):
-        completion = sample(device=device, model=model, tokenizer=tokenizer, context=args.context, pad_token_id=tokenizer.encode('<|pad|>').ids[0], num_return_sequences=args.batch_size, temp=args.t, top_p=args.p, max_length=args.max_length)[0]
-        truncation = truncate(completion, terminals=['1', '2'])
+        completions = sample(device=device, model=model, tokenizer=tokenizer, context=args.context, pad_token_id=tokenizer.encode('<|pad|>').ids[0], num_return_sequences=args.num_samples, temp=args.t, top_p=args.p, max_length=args.max_length)[0]
+        truncations = [truncate(completion, terminals=['1', '2']) for completion in completions]
 
-        print('=' * 100)
         print(args.context)
-        print('=' * 100)
-        print(completion)
-        print('=' * 100)
-        print(truncation)
-        print('=' * 100)
+
+        for i, (completion, truncation) in enumerate(zip(completions, truncations)):
+
+            print('=' * 100)
+            print(i)
+            print('=' * 100)
+            print(completion)
+            print('=' * 100)
+            print(truncation)
+            print('=' * 100)
 
 
 if __name__ == '__main__':
