@@ -103,7 +103,7 @@ def log_likelihood_custom_2(logits, target, ignore_index, reduction='mean'):
         assert len(target.shape) == 1
         assert logits.shape[0] == target.shape[0]
         log_likelihood = 0.0
-        n = (logits != ignore_index).long().sum()
+        n = (target != ignore_index).long().sum()
         for i in range(logits.shape[0]):
             if target[i] != ignore_index:
                 log_likelihood += torch.log_softmax(logits, dim=1)[i, target[i]] / (1. if reduction == 'sum' else n)
