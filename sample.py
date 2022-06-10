@@ -75,6 +75,18 @@ def sample(device, model, tokenizer, context, max_length, num_return_sequences, 
         return tokenizer.decode_batch(as_lists(tokens_batch))
 
 
+def truncate(sample, terminals):
+    pos = []
+    for terminal in terminals:
+        find_pos = sample.find(terminal, 1)
+        if find_pos != -1:
+            pos.append(find_pos)
+    if len(pos) > 0:
+        return sample[:(min(pos)+1)]
+    else:
+        return sample
+
+
 ########################################################################
 # main
 
@@ -93,7 +105,7 @@ def main():
     # (1) params
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, choices=models, default='754M-BFD30-Uniref90++')
+    parser.add_argument('--model', type=str, choices=models, default='2B-BFD30-Uniref90')
     parser.add_argument('--device', type=str, default='cuda:0')
     parser.add_argument('--rng-seed', type=int, default=42)
     parser.add_argument('--rng-deterministic', default=True, type=lambda x: (str(x).lower() == 'true'))
@@ -129,13 +141,15 @@ def main():
 
     with print_time('sampling'):
         completion = sample(device=device, model=model, tokenizer=tokenizer, context=args.context, pad_token_id=tokenizer.encode('<|pad|>').ids[0], num_return_sequences=args.batch_size, temp=args.t, top_p=args.p, max_length=args.max_length)[0]
+        truncation = truncate(completion, terminals=['1', '2'])
 
+        print('=' * 100)
+        print(args.context)
         print('=' * 100)
         print(completion)
         print('=' * 100)
-        print(args.context+completion)
+        print(truncation)
         print('=' * 100)
-
 
 
 if __name__ == '__main__':
