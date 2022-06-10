@@ -145,11 +145,11 @@ def main():
 
         print(args.context)
 
-        for i in range(args.num_samples):
+        for (i, truncation) in enumerate(truncations):
 
             print()
             print(i)
-            print(truncations[0])
+            print(truncation)
             
 
 
