@@ -140,7 +140,7 @@ def main():
     # (4) sample
 
     with print_time('sampling'):
-        completions = sample(device=device, model=model, tokenizer=tokenizer, context=args.context, pad_token_id=tokenizer.encode('<|pad|>').ids[0], num_return_sequences=args.num_samples, temp=args.t, top_p=args.p, max_length=args.max_length)[0]
+        completions = sample(device=device, model=model, tokenizer=tokenizer, context=args.context, pad_token_id=tokenizer.encode('<|pad|>').ids[0], num_return_sequences=args.num_samples, temp=args.t, top_p=args.p, max_length=args.max_length)
         truncations = [truncate(completion, terminals=['1', '2']) for completion in completions]
 
         print(args.context)
