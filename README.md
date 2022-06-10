@@ -16,11 +16,11 @@ Official release of the **ProGen** models (`151M`, `764M`, `2.7B`, `6.4B`) for *
 
 ## Setup
 ```sh
-# clone
+# code
 git clone https://github.com/salesforce/progen
 cd progen
 
-# transfer
+# checkpoint
 model=2B-BFD30-Uniref90
 wget -P checkpoints/${model} https://storage.googleapis.com/sfr-progen-research/checkpoints/${model}.tar.gz
 tar -xvf checkpoints/${model}/${model}.tar.gz -C checkpoints/${model}/
