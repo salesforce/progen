@@ -89,22 +89,25 @@ def cross_entropy_with_shift(logits, target, ignore_index, reduction):
 
 
 def log_likelihood(logits, target, ignore_index, reduction='mean'):
-    return -cross_entropy_with_shift(logits=logits, target=target, ignore_index=ignore_index, reduction=reduction)
+    with torch.no_grad():
+        return -cross_entropy_with_shift(logits=logits, target=target, ignore_index=ignore_index, reduction=reduction)
 
 
 def log_likelihood_custom_1(logits, target, ignore_index, reduction='mean'):
-    return -torch.nn.functional.nll_loss(input=torch.log_softmax(logits, dim=1), target=target, reduction=reduction, ignore_index=ignore_index)
+    with torch.no_grad():
+        return -torch.nn.functional.nll_loss(input=torch.log_softmax(logits, dim=1), target=target, reduction=reduction, ignore_index=ignore_index)
 
 
 def log_likelihood_custom_2(logits, target, ignore_index, reduction='mean'):
-    assert len(target.shape) == 1
-    assert logits.shape[0] == target.shape[0]
-    log_likelihood = 0.0
-    n = (logits != ignore_index).long().sum()
-    for i in range(n):
-        if target[i] != ignore_index:
-            log_likelihood += torch.log_softmax(logits, dim=1)[i, target[i]] / (1. if reduction == 'sum' else n)
-    return log_likelihood
+    with torch.no_grad():
+        assert len(target.shape) == 1
+        assert logits.shape[0] == target.shape[0]
+        log_likelihood = 0.0
+        n = (logits != ignore_index).long().sum()
+        for i in range(logits.shape[0]):
+            if target[i] != ignore_index:
+                log_likelihood += torch.log_softmax(logits, dim=1)[i, target[i]] / (1. if reduction == 'sum' else n)
+        return log_likelihood
 
 
 ########################################################################
