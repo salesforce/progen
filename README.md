@@ -8,11 +8,9 @@ Official release of the **ProGen** models (`151M`, `764M`, `2.7B`, `6.4B`) for *
 | 151M-BFD30-Uniref90	   | https://storage.googleapis.com/sfr-progen-research/checkpoints/151M-BFD30-Uniref90.tar.gz |
 | 754M-BFD30-Uniref90	   | https://storage.googleapis.com/sfr-progen-research/checkpoints/754M-BFD30-Uniref90.tar.gz |
 | 754M-OASu85	           | https://storage.googleapis.com/sfr-progen-research/checkpoints/754M-OASu85.tar.gz |
-| 754M-BFD30-Uniref90++	 | https://storage.googleapis.com/sfr-progen-research/checkpoints/754M-BFD30-Uniref90++.tar.gz |
 | 2B-BFD30-Uniref90      | https://storage.googleapis.com/sfr-progen-research/checkpoints/2B-BFD30-Uniref90.tar.gz |
 | 2B-BFD90-Uniref90+     | https://storage.googleapis.com/sfr-progen-research/checkpoints/2B-BFD90-Uniref90+.tar.gz |
 | 6B-BFD30-Uniref90	     | https://storage.googleapis.com/sfr-progen-research/checkpoints/6B-BFD30-Uniref90.tar.gz |
-| 6B-BFD30-Uniref90++    | https://storage.googleapis.com/sfr-progen-research/checkpoints/6B-BFD30-Uniref90++.tar.gz |
 
 ## Setup
 ```sh
