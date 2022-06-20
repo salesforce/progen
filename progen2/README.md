@@ -1,4 +1,4 @@
-# ProGen
+# ProGen2
 Official release of the **ProGen2** models (`151M`, `764M`, `2.7B`, `6.4B`) for **Protein Engineering**.
 
 ## Models
