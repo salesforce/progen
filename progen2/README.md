@@ -17,7 +17,7 @@ Official release of the **ProGen2** models (`151M`, `764M`, `2.7B`, `6.4B`) for 
 ```sh
 # code
 git clone https://github.com/salesforce/progen
-cd progen
+cd progen/progen2
 
 # checkpoint
 model=progen2-large
