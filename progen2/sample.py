@@ -95,13 +95,12 @@ def main():
 
     # (0) constants
 
-    models_151M = [ '151M-BFD30-Uniref90' ]
-    models_754M = [ '754M-BFD30-Uniref90', '754M-OASu85', '754M-BFD30-Uniref90++' ]
-    models_2B = [ '2B-BFD30-Uniref90', '2B-BFD90-Uniref90+' ]
-    models_6B = [ '6B-BFD30-Uniref90', '6B-BFD30-Uniref90++' ]
+    models_151M = [ 'progen2-small' ]
+    models_754M = [ 'progen2-medium', 'progen2-oas', 'progen2-base' ]
+    models_2B = [ 'progen2-large', 'progen2-BFD90' ]
+    models_6B = [ 'progen2-xlarge' ]
     models = models_151M + models_754M + models_2B + models_6B
-
-
+    
     # (1) params
 
     parser = argparse.ArgumentParser()
