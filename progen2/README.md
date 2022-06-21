@@ -4,7 +4,7 @@ Official release of the **ProGen2** models (`151M`, `764M`, `2.7B`, `6.4B`) for 
 ## Models
 
 | Model | Size | Checkpoint |
-| ------ | ---------- |
+| ------ | ------ | ---------- |
 | progen2-small	   | `151M` | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-small.tar.gz |
 | progen2-medium   | `764M` | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-medium.tar.gz |
 | progen2-oas	     | `764M` | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-oas.tar.gz |
