@@ -3,15 +3,15 @@ Official release of the **ProGen2** models (`151M`, `764M`, `2.7B`, `6.4B`) for 
 
 ## Models
 
-| Model  | Checkpoint |
+| Model | Size | Checkpoint |
 | ------ | ---------- |
-| progen2-small	   | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-small.tar.gz |
-| progen2-medium   | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-medium.tar.gz |
-| progen2-oas	     | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-oas.tar.gz |
-| progen2-base     | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-base.tar.gz |
-| progen2-large    | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-large.tar.gz |
-| progen2-BFD90    | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-BFD90.tar.gz |
-| progen2-xlarge   | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-xlarge.tar.gz |
+| progen2-small	   | `151M` | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-small.tar.gz |
+| progen2-medium   | `764M` | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-medium.tar.gz |
+| progen2-oas	     | `764M` | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-oas.tar.gz |
+| progen2-base     | `764M` | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-base.tar.gz |
+| progen2-large    | `2.7B` |  https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-large.tar.gz |
+| progen2-BFD90    | `2.7B` | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-BFD90.tar.gz |
+| progen2-xlarge   | `6.4B` | https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-xlarge.tar.gz |
 
 ## Setup
 ```sh
