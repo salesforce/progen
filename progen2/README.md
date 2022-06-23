@@ -42,7 +42,7 @@ python3 likelihood.py --model ${model} --context "2PAQGRARLAAHYGTGRIGREVTVDERCRN
 If you find our code or paper useful, please cite:
 ```bibtex
 @article{,
-  title={},
+  title={ProGen2: Exploring the Boundaries of Protein Language Models},
   author={},
   journal={arXiv preprint},
   year={2022}
