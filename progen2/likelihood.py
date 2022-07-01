@@ -134,6 +134,7 @@ def main():
     parser.add_argument('--rng-deterministic', default=True, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--fp16', default=True, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--context', type=str, default='1')
+    parser.add_argument('--sanity', default=False, type=lambda x: (str(x).lower() == 'true'))
     args = parser.parse_args()
 
 
@@ -169,49 +170,53 @@ def main():
             return f(logits=logits, target=input_ids, ignore_index=ignore_index, reduction=reduction)
 
 
-    # (5) sanity
-
-    with print_time('sanity log-likelihood'):
-
-        observation = '2PAQGRARLAAHYGTGRIGREVTVDERCRNLDRLEPSWELLRLLDDMGFIEGQNGLRRYVAEVFALDEPYDMTWRLRSLDEPHEVNAIEFAAPHERVYATLSERFFPDSVERDLRELVTRSLVEVDLGDPFTPPFVNSVYELRGASRRWVGVVRDVLAPDVLPCDATIRVLADAGTRAATRGLREILDTESGRVCVLGLHAALDAIADDRNEVSTSVAVADLEQCVALREAIRQITPRGAISVLVKGPLRTSGMRAQIAAVVHLRAKSSHLLPGGTDVVTFGAREFAIRSAANERKVVASMRLLALPGFAERSLCGLARPGVGRGRWEPAINVSVAADRDQIDLRVMGADVGDASVIFLKRDFRKLTEEFWRTHTDVPIEREDVSAQRTEPDNRWRWLVPCDDLVAPRLTVVPPRSVGHGM1'
-
-        ll_0 = ll(observation, f=log_likelihood, reduction='mean')
-        ll_1 = ll(observation, f=log_likelihood_custom_1, reduction='mean')
-        ll_2 = ll(observation, f=log_likelihood_custom_2, reduction='mean')
-
-        print(f'll_0={ll_0}')
-        print(f'll_1={ll_1}')
-        print(f'll_2={ll_2}')
-
-        assert abs(ll_0 - ll_1) < 1e-2
-        assert abs(ll_0 - ll_2) < 1e-2
 
 
-    # (6) sanity
+    if args.sanity:
 
-    with print_time('sanity model'):
+        # (5) sanity
 
-        alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-        observation_data = '2PAQGRARLAAHYGTGRIGREVTVDERCRNLDRLEPSWELLRLLDDMGFIEGQNGLRRYVAEVFALDEPYDMTWRLRSLDEPHEVNAIEFAAPHERVYATLSERFFPDSVERDLRELVTRSLVEVDLGDPFTPPFVNSVYELRGASRRWVGVVRDVLAPDVLPCDATIRVLADAGTRAATRGLREILDTESGRVCVLGLHAALDAIADDRNEVSTSVAVADLEQCVALREAIRQITPRGAISVLVKGPLRTSGMRAQIAAVVHLRAKSSHLLPGGTDVVTFGAREFAIRSAANERKVVASMRLLALPGFAERSLCGLARPGVGRGRWEPAINVSVAADRDQIDLRVMGADVGDASVIFLKRDFRKLTEEFWRTHTDVPIEREDVSAQRTEPDNRWRWLVPCDDLVAPRLTVVPPRSVGHGM1'
-        observation_random = '2' + ''.join([random.choice(alphabet) for _ in range(len(observation_data)-2)]) + '1'
-        observation_perturb = observation_random[:64] + observation_data[len(observation_random[:64]):]
+        with print_time('sanity log-likelihood'):
 
-        print(observation_data)
-        print(observation_perturb)
-        print(observation_random)
+            observation = '2PAQGRARLAAHYGTGRIGREVTVDERCRNLDRLEPSWELLRLLDDMGFIEGQNGLRRYVAEVFALDEPYDMTWRLRSLDEPHEVNAIEFAAPHERVYATLSERFFPDSVERDLRELVTRSLVEVDLGDPFTPPFVNSVYELRGASRRWVGVVRDVLAPDVLPCDATIRVLADAGTRAATRGLREILDTESGRVCVLGLHAALDAIADDRNEVSTSVAVADLEQCVALREAIRQITPRGAISVLVKGPLRTSGMRAQIAAVVHLRAKSSHLLPGGTDVVTFGAREFAIRSAANERKVVASMRLLALPGFAERSLCGLARPGVGRGRWEPAINVSVAADRDQIDLRVMGADVGDASVIFLKRDFRKLTEEFWRTHTDVPIEREDVSAQRTEPDNRWRWLVPCDDLVAPRLTVVPPRSVGHGM1'
 
-        assert observation_data != observation_perturb
+            ll_0 = ll(observation, f=log_likelihood, reduction='mean')
+            ll_1 = ll(observation, f=log_likelihood_custom_1, reduction='mean')
+            ll_2 = ll(observation, f=log_likelihood_custom_2, reduction='mean')
 
-        ll_observation_data = ll(observation_data)
-        ll_observation_random = ll(observation_random)
-        ll_observation_perturb = ll(observation_perturb)
+            print(f'll_0={ll_0}')
+            print(f'll_1={ll_1}')
+            print(f'll_2={ll_2}')
 
-        print(f'll_observation_data={ll_observation_data}')
-        print(f'll_observation_random={ll_observation_random}')
-        print(f'll_observation_perturb={ll_observation_perturb}')
+            assert abs(ll_0 - ll_1) < 1e-2
+            assert abs(ll_0 - ll_2) < 1e-2
 
-        assert ll_observation_data > ll_observation_random
-        assert ll_observation_data > ll_observation_perturb
+
+        # (6) sanity
+
+        with print_time('sanity model'):
+
+            alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+            observation_data = '2PAQGRARLAAHYGTGRIGREVTVDERCRNLDRLEPSWELLRLLDDMGFIEGQNGLRRYVAEVFALDEPYDMTWRLRSLDEPHEVNAIEFAAPHERVYATLSERFFPDSVERDLRELVTRSLVEVDLGDPFTPPFVNSVYELRGASRRWVGVVRDVLAPDVLPCDATIRVLADAGTRAATRGLREILDTESGRVCVLGLHAALDAIADDRNEVSTSVAVADLEQCVALREAIRQITPRGAISVLVKGPLRTSGMRAQIAAVVHLRAKSSHLLPGGTDVVTFGAREFAIRSAANERKVVASMRLLALPGFAERSLCGLARPGVGRGRWEPAINVSVAADRDQIDLRVMGADVGDASVIFLKRDFRKLTEEFWRTHTDVPIEREDVSAQRTEPDNRWRWLVPCDDLVAPRLTVVPPRSVGHGM1'
+            observation_random = '2' + ''.join([random.choice(alphabet) for _ in range(len(observation_data)-2)]) + '1'
+            observation_perturb = observation_random[:64] + observation_data[len(observation_random[:64]):]
+
+            print(observation_data)
+            print(observation_perturb)
+            print(observation_random)
+
+            assert observation_data != observation_perturb
+
+            ll_observation_data = ll(observation_data)
+            ll_observation_random = ll(observation_random)
+            ll_observation_perturb = ll(observation_perturb)
+
+            print(f'll_observation_data={ll_observation_data}')
+            print(f'll_observation_random={ll_observation_random}')
+            print(f'll_observation_perturb={ll_observation_perturb}')
+
+            assert ll_observation_data > ll_observation_random
+            assert ll_observation_data > ll_observation_perturb
 
 
     # (7) likelihood
