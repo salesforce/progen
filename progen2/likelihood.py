@@ -221,12 +221,31 @@ def main():
 
     # (7) likelihood
 
-    with print_time('log-likelihood'):
+    with print_time('log-likelihood (left-to-right)'):
 
         ll_sum = ll(tokens=args.context, reduction='sum')
         ll_mean = ll(tokens=args.context, reduction='mean')
 
         print(f'll_sum={ll_sum}')
+        print(f'll_mean={ll_mean}')
+
+
+    # (8) likelihood
+
+    with print_time('log-likelihood (left-to-right, right-to-left)'):
+
+        reverse = lambda s: s[::-1]
+
+        ll_lr_sum = ll(tokens=args.context, reduction='sum')
+        ll_rl_sum = ll(tokens=reverse(args.context), reduction='sum')
+
+        ll_lr_mean = ll(tokens=args.context, reduction='mean')
+        ll_rl_mean = ll(tokens=reverse(args.context), reduction='mean')
+
+        ll_sum = .5 * (ll_lr_sum + ll_rl_sum)
+        ll_mean = .5 * (ll_lr_mean + ll_rl_mean)
+
+        print(f'll_sum={(ll_sum)}')
         print(f'll_mean={ll_mean}')
 
 
