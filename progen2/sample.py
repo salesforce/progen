@@ -125,6 +125,8 @@ def main():
     device = torch.device(args.device)
     ckpt = f'./checkpoints/{args.model}'
 
+    if device.type == 'cpu':
+        args.fp16 = False
 
     # (3) load
 
