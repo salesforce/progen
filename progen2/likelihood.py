@@ -133,7 +133,7 @@ def main():
     parser.add_argument('--rng-seed', type=int, default=42)
     parser.add_argument('--rng-deterministic', default=True, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--fp16', default=True, type=lambda x: (str(x).lower() == 'true'))
-    parser.add_argument('--context', type=str, default='1')
+    parser.add_argument('--context', type=str, default='1MGHGVSRPPVVTLRPAVLDDCPVLWRWRNDPETRQASVDEREIPVDTHTRWFEETLKRFDRKLFIVSADGVDAGMVRLDIQDRDAAVSVNIAPEWRGRGVGPRALGCLSREAFGPLALLRMSAVVKRENAASRIAFERAGFTVVDTGGPLLHSSKARLHVVAAIQARMGSTRLPGKVLVSIAGRPTIQRIAERLAVCQELDAVAVSTSVENRDDAIADLAAHLGLVCVRGSETDLIERLGRTAARTGADALVRITADCPLVDPALVDRVVGVWRRSAGRLEYVSNVFPPTFPDGLDVEVLSRTVLERLDREVSDPFFRESLTAYVREHPAAFEIANVEHPEDLSRLRWTMDYPEDLAFVEAVYRRLGNQGEIFGMDDLLRLLEWSPELRDLNRCREDVTVERGIRGTGYHAALRARGQAP2')
     parser.add_argument('--sanity', default=False, type=lambda x: (str(x).lower() == 'true'))
     args = parser.parse_args()
 
