@@ -87,6 +87,11 @@ def truncate(sample, terminals):
         return sample
 
 
+def cross_entropy(logits, target, reduction='mean'):
+    return torch.nn.functional.cross_entropy(input=logits, target=target, weight=None, size_average=None, reduce=None, reduction=reduction)
+
+
+
 ########################################################################
 # main
 
@@ -114,6 +119,7 @@ def main():
     parser.add_argument('--num-samples', type=int, default=1)
     parser.add_argument('--fp16', default=True, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--context', type=str, default='1')
+    parser.add_argument('--sanity', default=True, type=lambda x: (str(x).lower() == 'true'))
     args = parser.parse_args()
 
 
@@ -142,8 +148,46 @@ def main():
     with print_time('loading tokenizer'):
         tokenizer = create_tokenizer_custom(file='tokenizer.json')
 
+    # (4) sanity
 
-    # (4) sample
+    if args.sanity:
+
+        with print_time('sanity cross-entropy'):
+
+            def ce(tokens):
+                with torch.no_grad():
+                    with torch.cuda.amp.autocast():
+                        target = torch.tensor(tokenizer.encode(tokens).ids).to(device)
+                        logits = model(target, labels=target).logits
+
+                        # shift
+                        logits = logits[:-1, ...]
+                        target = target[1:]
+
+                        return cross_entropy(logits=logits, target=target).item()
+
+            x_uniref90bfd30 = '2GFLPFRGADEGLAAREAATLAARGTAARAYREDSWAVPVPRGLLGDLTARVAALGAASPPPADPLAVTLDLHHVTAEVALTTVLDAATLVHGQTRVLSAEDAAEAATAAAAATEAYLERLQDFVLFMSASVRVWRRGNAAGATGPEWDQWYTVADRDALGSAPTHLAVLGRQADALCHFVLDRVAWGTCGTPLWSGDEDLGNVVATFAGYADRLATAPRDLIM1'
+            x_oas = '1EVQLVESGGGLVQPGGSLRLSCAASGFTFSSYAMHWVRQAPWKGLEYVSAISSNGGSTYYANSVKGRFTISRDNSKNTLYLQMGSLRAEDMAVYYCARDESGYSYGWGYYFDYWGQGTLVTVSS2'
+            x_bfd90 = '1TAPRSTRASGSEGSRPPGIPAKGRRCLPSRAGSVTPRFRHARQGTATVAKEQGRKLIASNRKARHDYHIEDTFEAGLVLTGTEVKSLRMGRASLIDGYAVFYGEELWLEGVHIPEYLNGNWTNHTPRRRRKLLLNRSELTKLAHKTSESGHTIVPLALYFKDGRAKVEIAVAKGKKAYDKRHALRERQDQREV2'
+
+            checkpoint_x_ce = {
+                'progen2-small': (x_uniref90bfd30, 2.4),
+                'progen2-medium': (x_uniref90bfd30, 1.9),
+                'progen2-base': (x_uniref90bfd30, 1.9),
+                'progen2-large': (x_uniref90bfd30, 1.8),
+                'progen2-xlarge': (x_uniref90bfd30, 1.0),
+                'progen2-oas': (x_oas, 0.3),
+                'progen2-BFD90': (x_bfd90, 1.3),
+            }
+
+            ce_eval = ce(checkpoint_x_ce[args.model][0])
+            ce_target = checkpoint_x_ce[args.model][1]
+
+            print(ce_target, ce_eval, abs(ce_eval - ce_target))
+
+            assert abs(ce_eval - ce_target) < 0.1
+
+    # (5) sample
 
     with print_time('sampling'):
         completions = sample(device=device, model=model, tokenizer=tokenizer, context=args.context, pad_token_id=tokenizer.encode('<|pad|>').ids[0], num_return_sequences=args.num_samples, temp=args.t, top_p=args.p, max_length=args.max_length)
