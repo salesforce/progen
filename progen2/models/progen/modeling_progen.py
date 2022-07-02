@@ -155,8 +155,9 @@ class ProGenAttention(nn.Module):
     ):
 
         qkv = self.qkv_proj(hidden_states)
-        # TODO(enijkamp): factor out number of logical TPU-v4 cores or make forward pass agnostic
-        mp_num = 4
+        # TODO(enijkamp): factor out number of logical TPU-v3/v4 cores or make forward pass agnostic
+        # mp_num = 4
+        mp_num = 8
         qkv_split = qkv.reshape(qkv.shape[:-1] + (mp_num, -1))
 
         local_dim = self.head_dim * self.num_attention_heads // mp_num
