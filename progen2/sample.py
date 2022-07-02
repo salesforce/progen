@@ -122,10 +122,15 @@ def main():
     set_env()
     set_seed(args.rng_seed, deterministic=args.rng_deterministic)
 
+    if not torch.cuda.is_available():
+        print('falling back to cpu')
+        args.device = 'cpu'
+
     device = torch.device(args.device)
     ckpt = f'./checkpoints/{args.model}'
 
     if device.type == 'cpu':
+        print('falling back to fp32')
         args.fp16 = False
 
     # (3) load

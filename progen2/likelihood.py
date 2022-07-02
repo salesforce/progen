@@ -134,10 +134,15 @@ def main():
     set_env()
     set_seed(args.rng_seed, deterministic=args.rng_deterministic)
 
+    if not torch.cuda.is_available():
+        print('falling back to cpu')
+        args.device = 'cpu'
+
     device = torch.device(args.device)
     ckpt = f'./checkpoints/{args.model}'
 
     if device.type == 'cpu':
+        print('falling back to fp32')
         args.fp16 = False
 
 
@@ -152,6 +157,19 @@ def main():
 
 
     # (4) log likelihood
+
+    def ce(tokens):
+        with torch.no_grad():
+            with torch.cuda.amp.autocast():
+                target = torch.tensor(tokenizer.encode(tokens).ids).to(device)
+                logits = model(target, labels=target).logits
+
+                # shift
+                logits = logits[:-1, ...]
+                target = target[1:]
+
+                return cross_entropy(logits=logits, target=target).item()
+
 
     def ll(tokens, f=log_likelihood, reduction='mean'):
         with torch.no_grad():
@@ -182,11 +200,34 @@ def main():
                 return f(logits=logits, target=target, reduction=reduction).item()
 
 
+    # (5) sanity
 
     if args.sanity:
 
-        # (5) sanity
+        with print_time('sanity cross-entropy'):
 
+            x_uniref90bfd30 = '2GFLPFRGADEGLAAREAATLAARGTAARAYREDSWAVPVPRGLLGDLTARVAALGAASPPPADPLAVTLDLHHVTAEVALTTVLDAATLVHGQTRVLSAEDAAEAATAAAAATEAYLERLQDFVLFMSASVRVWRRGNAAGATGPEWDQWYTVADRDALGSAPTHLAVLGRQADALCHFVLDRVAWGTCGTPLWSGDEDLGNVVATFAGYADRLATAPRDLIM1'
+            x_oas = '1EVQLVESGGGLVQPGGSLRLSCAASGFTFSSYAMHWVRQAPWKGLEYVSAISSNGGSTYYANSVKGRFTISRDNSKNTLYLQMGSLRAEDMAVYYCARDESGYSYGWGYYFDYWGQGTLVTVSS2'
+            x_bfd90 = '1TAPRSTRASGSEGSRPPGIPAKGRRCLPSRAGSVTPRFRHARQGTATVAKEQGRKLIASNRKARHDYHIEDTFEAGLVLTGTEVKSLRMGRASLIDGYAVFYGEELWLEGVHIPEYLNGNWTNHTPRRRRKLLLNRSELTKLAHKTSESGHTIVPLALYFKDGRAKVEIAVAKGKKAYDKRHALRERQDQREV2'
+
+            checkpoint_x_ce = {
+                'progen2-small': (x_uniref90bfd30, 2.4),
+                'progen2-medium': (x_uniref90bfd30, 1.9),
+                'progen2-base': (x_uniref90bfd30, 1.9),
+                'progen2-large': (x_uniref90bfd30, 1.8),
+                'progen2-xlarge': (x_uniref90bfd30, 1.0),
+                'progen2-oas': (x_oas, 0.3),
+                'progen2-BFD90': (x_bfd90, 1.3),
+            }
+
+            ce_eval = ce(checkpoint_x_ce[args.model][0])
+            ce_target = checkpoint_x_ce[args.model][1]
+
+            print(ce_target, ce_eval, abs(ce_eval - ce_target))
+
+            assert abs(ce_eval - ce_target) < 0.1
+
+            
         with print_time('sanity log-likelihood'):
 
             x_data = '2PAQGRARLAAHYGTGRIGREVTVDERCRNLDRLEPSWELLRLLDDMGFIEGQNGLRRYVAEVFALDEPYDMTWRLRSLDEPHEVNAIEFAAPHERVYATLSERFFPDSVERDLRELVTRSLVEVDLGDPFTPPFVNSVYELRGASRRWVGVVRDVLAPDVLPCDATIRVLADAGTRAATRGLREILDTESGRVCVLGLHAALDAIADDRNEVSTSVAVADLEQCVALREAIRQITPRGAISVLVKGPLRTSGMRAQIAAVVHLRAKSSHLLPGGTDVVTFGAREFAIRSAANERKVVASMRLLALPGFAERSLCGLARPGVGRGRWEPAINVSVAADRDQIDLRVMGADVGDASVIFLKRDFRKLTEEFWRTHTDVPIEREDVSAQRTEPDNRWRWLVPCDDLVAPRLTVVPPRSVGHGM1'
@@ -202,8 +243,6 @@ def main():
             assert abs(ll_0 - ll_1) < 1e-2
             assert abs(ll_0 - ll_2) < 1e-2
 
-
-        # (6) sanity
 
         with print_time('sanity model'):
 
@@ -230,7 +269,7 @@ def main():
             assert ll_x_data > ll_x_perturb
 
 
-    # (7) likelihood
+    # (6) likelihood
 
     with print_time('log-likelihood (left-to-right)'):
 
@@ -241,7 +280,7 @@ def main():
         print(f'll_mean={ll_mean}')
 
 
-    # (8) likelihood
+    # (7) likelihood
 
     with print_time('log-likelihood (left-to-right, right-to-left)'):
 
