@@ -78,38 +78,27 @@ def sample(device, model, tokenizer, context, max_length, num_return_sequences, 
 ########################################################################
 # likelihood
 
-def cross_entropy(logits, target, ignore_index, reduction='mean'):
-    return torch.nn.functional.cross_entropy(input=logits, target=target, weight=None, size_average=None, ignore_index=ignore_index, reduce=None, reduction=reduction)
+def cross_entropy(logits, target, reduction='mean'):
+    return torch.nn.functional.cross_entropy(input=logits, target=target, weight=None, size_average=None, reduce=None, reduction=reduction)
 
 
-def log_likelihood(logits, target, ignore_index, reduction='mean'):
-    with torch.no_grad():
-        shift_logits = logits[..., :-1, :].contiguous()
-        shift_target = target[..., 1:].contiguous()
-        return -cross_entropy(shift_logits.view(-1, shift_logits.size(-1)), shift_target.view(-1), ignore_index=ignore_index, reduction=reduction)
+def log_likelihood(logits, target, reduction='mean'):
+    return -cross_entropy(logits.view(-1, logits.size(-1)), target.view(-1), reduction=reduction)
 
 
-def log_likelihood_custom_1(logits, target, ignore_index, reduction='mean'):
-    with torch.no_grad():
-        shift_logits = logits[..., :-1, :].contiguous()
-        shift_target = target[..., 1:].contiguous()
-        return -torch.nn.functional.nll_loss(input=torch.log_softmax(shift_logits, dim=1), target=shift_target, reduction=reduction, ignore_index=ignore_index)
+def log_likelihood_custom_1(logits, target, reduction='mean'):
+    return -torch.nn.functional.nll_loss(input=torch.log_softmax(logits, dim=1), target=target, reduction=reduction)
 
 
-def log_likelihood_custom_2(logits, target, ignore_index, reduction='mean'):
-    with torch.no_grad():
-        assert len(target.shape) == 1
-        assert logits.shape[0] == target.shape[0]
+def log_likelihood_custom_2(logits, target, reduction='mean'):
+    assert len(target.shape) == 1
+    assert logits.shape[0] == target.shape[0]
 
-        shift_logits = logits[..., :-1, :].contiguous()
-        shift_target = target[..., 1:].contiguous()
-
-        log_likelihood = 0.0
-        n = (shift_target != ignore_index).long().sum()
-        for i in range(shift_logits.shape[0]):
-            if shift_target[i] != ignore_index:
-                log_likelihood += torch.log_softmax(shift_logits, dim=1)[i, shift_target[i]] / (1. if reduction == 'sum' else n)
-        return log_likelihood
+    log_likelihood = 0.0
+    n = logits.shape[0]
+    for i in range(n):
+        log_likelihood += torch.log_softmax(logits, dim=1)[i, target[i]] / (1. if reduction == 'sum' else n)
+    return log_likelihood
 
 
 ########################################################################
@@ -131,13 +120,13 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, choices=models, default='progen2-large')
-    parser.add_argument('--device', type=str, default='cuda:0')
+    # parser.add_argument('--device', type=str, default='cuda:0')
+    parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--rng-seed', type=int, default=42)
     parser.add_argument('--rng-deterministic', default=True, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--fp16', default=True, type=lambda x: (str(x).lower() == 'true'))
     parser.add_argument('--context', type=str, default='1MGHGVSRPPVVTLRPAVLDDCPVLWRWRNDPETRQASVDEREIPVDTHTRWFEETLKRFDRKLFIVSADGVDAGMVRLDIQDRDAAVSVNIAPEWRGRGVGPRALGCLSREAFGPLALLRMSAVVKRENAASRIAFERAGFTVVDTGGPLLHSSKARLHVVAAIQARMGSTRLPGKVLVSIAGRPTIQRIAERLAVCQELDAVAVSTSVENRDDAIADLAAHLGLVCVRGSETDLIERLGRTAARTGADALVRITADCPLVDPALVDRVVGVWRRSAGRLEYVSNVFPPTFPDGLDVEVLSRTVLERLDREVSDPFFRESLTAYVREHPAAFEIANVEHPEDLSRLRWTMDYPEDLAFVEAVYRRLGNQGEIFGMDDLLRLLEWSPELRDLNRCREDVTVERGIRGTGYHAALRARGQAP2')
     parser.add_argument('--sanity', default=True, type=lambda x: (str(x).lower() == 'true'))
-    parser.add_argument('--non-AA', default=False, type=lambda x: (str(x).lower() == 'true'))
     args = parser.parse_args()
 
 
@@ -161,24 +150,37 @@ def main():
 
     with print_time('loading tokenizer'):
         tokenizer = create_tokenizer_custom(file='tokenizer.json')
-        pad_token_id = tokenizer.encode('<|pad|>').ids[0]
 
 
     # (4) log likelihood
 
-    def ll(tokens, f=log_likelihood, ignore_index=pad_token_id, reduction='mean', non_AA=args.non_AA):
-        with torch.cuda.amp.autocast():
-            input_ids = torch.tensor(tokenizer.encode(tokens).ids).to(device)
-            logits = model(input_ids, labels=input_ids).logits
+    def ll(tokens, f=log_likelihood, reduction='mean'):
+        with torch.no_grad():
+            with torch.cuda.amp.autocast():
+                target = torch.tensor(tokenizer.encode(tokens).ids).to(device)
+                logits = model(target, labels=target).logits
 
-            if non_AA:
-                logits = logits[:,5:-2]
-                targets = input_ids[:]-5
-            else:
-                logits = logits
-                targets = input_ids
+                # shift
+                logits = logits[:-1, ...]
+                target = target[1:]
 
-            return f(logits=logits, target=targets, ignore_index=ignore_index, reduction=reduction).item()
+                # remove terminals
+                bos_token, eos_token = 3, 4
+                if target[-1] in [bos_token, eos_token]:
+                    logits = logits[:-1, ...]
+                    target = target[:-1]
+
+                assert (target == bos_token).sum() == 0
+                assert (target == eos_token).sum() == 0
+
+                # remove unused logits
+                first_token, last_token = 5, 29
+                logits = logits[:, first_token:(last_token+1)]
+                target = target - first_token
+
+                assert logits.shape[1] == (last_token - first_token + 1)
+ 
+                return f(logits=logits, target=target, reduction=reduction).item()
 
 
 
@@ -188,11 +190,11 @@ def main():
 
         with print_time('sanity log-likelihood'):
 
-            observation = '2PAQGRARLAAHYGTGRIGREVTVDERCRNLDRLEPSWELLRLLDDMGFIEGQNGLRRYVAEVFALDEPYDMTWRLRSLDEPHEVNAIEFAAPHERVYATLSERFFPDSVERDLRELVTRSLVEVDLGDPFTPPFVNSVYELRGASRRWVGVVRDVLAPDVLPCDATIRVLADAGTRAATRGLREILDTESGRVCVLGLHAALDAIADDRNEVSTSVAVADLEQCVALREAIRQITPRGAISVLVKGPLRTSGMRAQIAAVVHLRAKSSHLLPGGTDVVTFGAREFAIRSAANERKVVASMRLLALPGFAERSLCGLARPGVGRGRWEPAINVSVAADRDQIDLRVMGADVGDASVIFLKRDFRKLTEEFWRTHTDVPIEREDVSAQRTEPDNRWRWLVPCDDLVAPRLTVVPPRSVGHGM1'
+            x_data = '2PAQGRARLAAHYGTGRIGREVTVDERCRNLDRLEPSWELLRLLDDMGFIEGQNGLRRYVAEVFALDEPYDMTWRLRSLDEPHEVNAIEFAAPHERVYATLSERFFPDSVERDLRELVTRSLVEVDLGDPFTPPFVNSVYELRGASRRWVGVVRDVLAPDVLPCDATIRVLADAGTRAATRGLREILDTESGRVCVLGLHAALDAIADDRNEVSTSVAVADLEQCVALREAIRQITPRGAISVLVKGPLRTSGMRAQIAAVVHLRAKSSHLLPGGTDVVTFGAREFAIRSAANERKVVASMRLLALPGFAERSLCGLARPGVGRGRWEPAINVSVAADRDQIDLRVMGADVGDASVIFLKRDFRKLTEEFWRTHTDVPIEREDVSAQRTEPDNRWRWLVPCDDLVAPRLTVVPPRSVGHGM1'
 
-            ll_0 = ll(observation, f=log_likelihood, reduction='mean')
-            ll_1 = ll(observation, f=log_likelihood_custom_1, reduction='mean')
-            ll_2 = ll(observation, f=log_likelihood_custom_2, reduction='mean')
+            ll_0 = ll(x_data, f=log_likelihood, reduction='mean')
+            ll_1 = ll(x_data, f=log_likelihood_custom_1, reduction='mean')
+            ll_2 = ll(x_data, f=log_likelihood_custom_2, reduction='mean')
 
             print(f'll_0={ll_0}')
             print(f'll_1={ll_1}')
