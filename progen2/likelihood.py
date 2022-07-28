@@ -160,7 +160,7 @@ def main():
 
     def ce(tokens):
         with torch.no_grad():
-            with torch.cuda.amp.autocast():
+            with torch.cuda.amp.autocast(enabled=args.fp16):
                 target = torch.tensor(tokenizer.encode(tokens).ids).to(device)
                 logits = model(target, labels=target).logits
 
@@ -173,7 +173,7 @@ def main():
 
     def ll(tokens, f=log_likelihood, reduction='mean'):
         with torch.no_grad():
-            with torch.cuda.amp.autocast():
+            with torch.cuda.amp.autocast(enabled=args.fp16):
                 target = torch.tensor(tokenizer.encode(tokens).ids).to(device)
                 logits = model(target, labels=target).logits
 
